@@ -1,6 +1,6 @@
-# Arquitetura do Projeto
+# SQL Executor Agent
 
-Este arquivo descreve, em formato de diagrama Mermaid, a arquitetura completa do sistema implementado em código (Terraform + Lambdas + API Gateway).
+This agent exposes an endpoint via API Gateway that triggers a Lambda function. The function receives user parameters, runs a query on Athena, and formats the output. Before returning, it caches the results in Redis so that identical requests can be served instantly next time, avoiding additional Athena calls.
 
 ```mermaid
 flowchart LR
