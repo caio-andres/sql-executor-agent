@@ -3,24 +3,33 @@
 This agent exposes an endpoint via API Gateway that triggers a Lambda function. The function receives user parameters, runs a query on Athena, and formats the output. Before returning, it caches the results in Redis so that identical requests can be served instantly next time, avoiding additional Athena calls.
 
 ```mermaid
-flowchart LR
-  U[Usuário]
-  A1[Agent1 - o4-mini<br/>Gera SQL]
-  APIGW[API Gateway]
-  Exec[Lambda Executor<br/>Athena c/ awswrangler]
-  ATH[Athena]
-  A2[Agent2 - o4-mini<br/>Humaniza Resposta]
-  OAI[OpenAI API]
+graph LR
+    %% Definição de clusters/layers
+    subgraph Cliente
+      U[Usuário]
+    end
 
-  U -->|pedido| A1
-  A1 -->|SQL completa| APIGW
-  APIGW -->|invoca| Exec
-  Exec -->|StartQuery| ATH
-  ATH -->|Query Results| Exec
-  Exec -->|dados brutos| A2
-  A2 -->|prompt - pedido + dados | OAI
-  OAI -->|texto humanizado| A2
-  A2 -->|resposta final| U
+    subgraph "Agentes (Microserviços)"
+      A1[Agent 1<br/>o4-mini<br/>Gera SQL]
+      A2[Agent 2<br/>Validador<br/>Filtra SQL]
+      A3[Agent 3<br/>Respondente<br/>Humaniza dados]
+    end
+
+    subgraph AWS
+      APIGW[API Gateway<br/>/executeQuery]
+      LambdaExec[Lambda<br/>awswrangler]
+      Athena[AWS Athena]
+    end
+
+    %% Fluxo de dados
+    U --> A1
+    A1 --> A2
+    A2 -->|POST /executeQuery<br/>'sqlQuery': '...'| APIGW
+    APIGW --> LambdaExec
+    LambdaExec --> Athena
+    Athena --> LambdaExec
+    LambdaExec --> A3
+    A3 --> U
 ```
 
 ## Componentes
