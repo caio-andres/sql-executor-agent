@@ -10,9 +10,9 @@ graph LR
     end
 
     subgraph "Agentes (Microserviços)"
-      A1[Agent 1<br/>o4-mini<br/>Gera SQL]
-      A2[Agent 2<br/>Validador<br/>Filtra SQL]
-      A3[Agent 3<br/>Respondente<br/>Humaniza dados]
+      A1[Agent 1<br/>gpt-4.1-mini<br/>Gera SQL]
+      A2[Agent 2<br/>gpt-4.1-nano<br/>Filtra SQL]
+      A3[Agent 3<br/>gpt-4.1-mini<br/>Humaniza dados]
     end
 
     subgraph AWS
