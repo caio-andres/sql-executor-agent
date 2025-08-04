@@ -5,34 +5,22 @@ This agent exposes an endpoint via API Gateway that triggers a Lambda function. 
 ```mermaid
 flowchart LR
   U[Usuário]
-  APIGW["API Gateway<br>ai-agents-api"]
-  subgraph Lambdas
-    L1["Agent1<br>Gera SQL"]
-    L2["Executor<br>Executa Athena"]
-    L3["Agent2<br>Formata Resposta"]
-  end
-  SM["AWS Secrets Manager<br>(openai-api-key)"]
-  OAI[OpenAI API]
+  A1[Agent1 - o4-mini<br/>Gera SQL]
+  APIGW[API Gateway]
+  Exec[Lambda Executor<br/>Athena c/ awswrangler]
   ATH[Athena]
-  CW[CloudWatch Logs]
+  A2[Agent2 - o4-mini<br/>Humaniza Resposta]
+  OAI[OpenAI API]
 
-  U -->|POST /generate-sql| APIGW
-  APIGW -->|invoke| L1
-  L1 -->|GetSecretValue| SM
-  L1 -->|completions| OAI
-  OAI -->|SQL Gerado| L1
-  L1 -->|POST /execute-query| APIGW
-  APIGW -->|invoke| L2
-  L2 -->|StartQueryExecution| ATH
-  ATH -->|GetQueryResults| L2
-  L2 -->|POST /format-response| APIGW
-  APIGW -->|invoke| L3
-  L3 -->|completions| OAI
-  OAI -->|Texto Formatado| L3
-  L3 -->|200 OK| APIGW
-  APIGW -->|Resposta| U
-
-  L1 & L2 & L3 --> CW
+  U -->|pedido| A1
+  A1 -->|SQL completa| APIGW
+  APIGW -->|invoca| Exec
+  Exec -->|StartQuery| ATH
+  ATH -->|Query Results| Exec
+  Exec -->|dados brutos| A2
+  A2 -->|prompt - pedido + dados | OAI
+  OAI -->|texto humanizado| A2
+  A2 -->|resposta final| U
 ```
 
 ## Componentes
